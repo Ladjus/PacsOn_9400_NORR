@@ -41,14 +41,14 @@ WITH cte_artnr AS (
 cte_artnr_west AS (  -- Add v.4w.
   SELECT ar_2000.artnr
   FROM ar AS ar_2000
-    LEFT OUTER JOIN ar AS ar_9100
-      ON ar_2000.artnr = ar_9100.artnr
-      AND ar_9100.ForetagKod = 9100  -- Väst
+    LEFT OUTER JOIN ar AS ar_9400
+      ON ar_2000.artnr = ar_9400.artnr
+      AND ar_9400.ForetagKod = 9400  -- Norr
   WHERE
     ar_2000.ForetagKod = 2000  -- Mall
     AND ar_2000.extra4 IN (11, 12)
     AND (ar_2000.q_saps4_sortiment IN ('A', 'B')  -- A/B-sortiment: alla artiklar.
-         OR (ar_2000.q_saps4_sortiment IN ('C') AND ar_9100.artnr IS NOT NULL))  -- C-sortiment: endast artiklar som finns i Väst 9100.
+         OR (ar_2000.q_saps4_sortiment IN ('C') AND ar_9400.artnr IS NOT NULL))  -- C-sortiment: endast artiklar som finns i Norr 9400.
 ),
 cte_artnr_north AS (  -- Add v.7n.
   SELECT ar_2000.artnr
@@ -153,14 +153,14 @@ WITH cte_artnr AS (
 cte_artnr_west AS (  -- Add v.4w.
   SELECT ar_2000.artnr
   FROM ar AS ar_2000
-    LEFT OUTER JOIN ar AS ar_9100
-      ON ar_2000.artnr = ar_9100.artnr
-      AND ar_9100.ForetagKod = 9100  -- Väst
+    LEFT OUTER JOIN ar AS ar_9400
+      ON ar_2000.artnr = ar_9400.artnr
+      AND ar_9400.ForetagKod = 9100  -- Norr
   WHERE
     ar_2000.ForetagKod = 2000  -- Mall
     AND ar_2000.extra4 IN (11, 12)
     AND (ar_2000.q_saps4_sortiment IN ('A', 'B')  -- A/B-sortiment: alla artiklar.
-         OR (ar_2000.q_saps4_sortiment IN ('C') AND ar_9100.artnr IS NOT NULL))  -- C-sortiment: endast artiklar som finns i Väst 9100.
+         OR (ar_2000.q_saps4_sortiment IN ('C') AND ar_9400.artnr IS NOT NULL))  -- C-sortiment: endast artiklar som finns i Norr 9400.
 ),
 cte_artnr_north AS (  -- Add v.7n.
   SELECT ar_2000.artnr
@@ -257,9 +257,9 @@ WITH cte_artnr AS (
 cte_artnr_west AS (  -- Add v.4w.
   SELECT ar_2000.artnr
   FROM ar AS ar_2000
-    LEFT OUTER JOIN ar AS ar_9100
-      ON ar_2000.artnr = ar_9100.artnr
-      AND ar_9100.ForetagKod = 9100  -- Väst
+    LEFT OUTER JOIN ar AS ar_9400
+      ON ar_2000.artnr = ar_9400.artnr
+      AND ar_9100.ForetagKod = 9400  -- Norr
   WHERE
     ar_2000.ForetagKod = 2000  -- Mall
     AND ar_2000.extra4 IN (11, 12)
