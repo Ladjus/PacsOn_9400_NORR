@@ -2,18 +2,23 @@
 -- Singelartikel, behåller artikelnummer ar.extra4 = 11
 
 /* Change log
-v.1: Inital version. Select only A-assortment plus B/C for PacsOn Norr. Since Norr has one EWM location it can be loaded in conjunction with MARC & MARD. Refer:
-     dev-ecom-3-matlwh-11-12-v3.sql
-     jea-99-sortiment-bc-9400-v1.sql
+v.1: Initial version. Select only A-assortment plus B/C for PacsOn Norr. Refer:
+     dev-ecom-3-proddclisting-11-12-v2.sql
+     Add CTE cte_artnr_west. Change in FROM-clause. Change in WHERE-clause.
 v.2: CTE cte_artnr_west: Select A/B-assortment plus C for PacsOn Norr.
 v.3: !!!PacsOn North 9400 only!!!
-     !!! Fork from jea-3-matlwh-11-12-w-v2.sql to jea-3-matlwh-11-12-n-v3.sql !!!
+     !!! Fork from jea-3-proddclisting-11-12-w-v2.sql to jea-3-proddclisting-11-12-n-v3.sql !!!
      Add CTE cte_artnr_north
-     Column MATLWH_RUN_ID fixed value 'NORTH' (was: WEST).
-     FROM ... INNER JOIN and WHERE clauses changed.
 */
 
-WITH cte_artnr_west AS (
+WITH cte_artnr AS (
+  SELECT artnr
+  FROM ar
+  WHERE
+    ForetagKod = 2000  -- Mall
+    AND extra4 IN (11, 12)
+),
+cte_artnr_west AS (  -- Add v.1.
   SELECT ar_2000.artnr
   FROM ar AS ar_2000
     LEFT OUTER JOIN ar AS ar_9400
@@ -43,10 +48,8 @@ cte_artnr_north AS (  -- Add v.3.
 )
 SELECT
   ar_2000.artnr AS AR_ArtNr,  -- Jeeves "Artikel ID"
-  ar_2000.artbeskrspec AS MATLWH_PRODUCT,  -- SAP Product. Jeeves "Artikelnr"
-  'NORTH' AS MATLWH_RUN_ID,  -- Change v.3.
-  CONCAT(CAST(ars.ForetagKod AS nvarchar(4)), '#', ars.LagStalle) AS MATLWH_LGNUM,  -- SAP Warehouse Number
-  CONCAT(CAST(ars.ForetagKod AS nvarchar(4)), '#', ars.LagStalle) AS MATLWH_ENTITLED  -- SAP Party Entitled to Dispose
+  CONCAT(CAST(ars.ForetagKod AS nvarchar(4)), '#', ars.LagStalle) AS PRODDCLIST_DC,  -- SAP Distribution Center
+  ar_2000.artbeskrspec AS PRODDCLIST_PRODUCT  -- SAP Product. Jeeves "Artikelnr"
 FROM
   ar AS ar_2000  -- Mall
   INNER JOIN ar AS ar_op  -- Operativa bolag
@@ -54,7 +57,7 @@ FROM
     AND ar_2000.ForetagKod = 2000  -- Mall
 --  AND ar_op.ForetagKod IN (6000, 9400, 9400, 9500)  -- ÖVNS. Remove v.1.
 --  AND ar_op.ForetagKod IN (9400)  -- Norr. Add v.1. Remove v.3.
-    AND ar_op.ForetagKod IN (9400)  -- Norr. Add v.3.
+  AND ar_op.ForetagKod IN (9400)  -- Norr. Add v.3.
   INNER JOIN ars
     ON ars.foretagkod = ar_op.foretagkod
     AND ars.artnr = ar_op.artnr
@@ -62,18 +65,18 @@ WHERE
   -- Specifika lager: ARS.ForetagKod (smallint) och ARS.LagStalle (nvarchar(16))
   -- Ref: "PacsOn Org structure_Final_2.xlsx" URL https://optigroup.sharepoint.com/sites/ASAP-Projektplats/Shared%20Documents/ASAP-%20Projektplats/Arkitektur%20&%20Teknisk%20upps%C3%A4ttning/Org.%20struktur/Pacson%20Org%20structure_Final_2.xlsx
 /* Remove v.1.
-  (  ( ars.ForetagKod = 6000 AND ars.LagStalle IN ('20', '30') )  -- Öst: Jordbro 20, Linköping 30.
-  OR ( ars.ForetagKod = 9400 AND ars.LagStalle IN ('5000') )  -- Norr: Falköping.
-  OR ( ars.ForetagKod = 9400 AND ars.LagStalle IN ('0', '2') )  -- Norr: Sundsvall 0, Skellefteå 2.
-  OR ( ars.ForetagKod = 9500 AND ars.LagStalle IN ('0', '5') )  -- Syd: Malmö 0, Växjö 5.
+  (  ( ars.ForetagKod = 6000 AND ars.LagStalle IN ('20', '30', '101', '102') )  -- Öst
+  OR ( ars.ForetagKod = 9400 AND ars.LagStalle IN ('5000') )  -- Norr
+  OR ( ars.ForetagKod = 9400 AND ars.LagStalle IN ('0', '2', '4', '5', '6') )  -- Norr
+  OR ( ars.ForetagKod = 9500 AND ars.LagStalle IN ('0', '5', '6', '7', '8') )  -- Syd
   )
 */
 /* Remove v.3.
-  (ars.ForetagKod = 9400 AND ars.LagStalle IN ('5000') )  -- Norr: Falköping. Add v.1.
+  (ars.ForetagKod = 9400 AND ars.LagStalle IN ('5000') )  -- Norr. Add v.1.
   AND ar_2000.artnr IN (SELECT artnr FROM cte_artnr_west)  -- AR.extra4 subquery. Change v.1
 */
-  (ars.ForetagKod = 9400 AND ars.LagStalle IN ('0', '2') )  -- Norr: Sundsvall 0, Skellefteå 2. Add v.3.
+  (ars.ForetagKod = 9400 AND ars.LagStalle IN ('0', '2', '4', '5', '6') )  -- Norr. Add v.3.
   AND ar_2000.artnr IN (SELECT artnr FROM cte_artnr_north)  -- AR.extra4 subquery. Add v.3.
-ORDER BY 2, 4, 5;
+ORDER BY 2, 3;
 
 -- END
